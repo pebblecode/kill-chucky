@@ -1,0 +1,14 @@
+{
+  "name": "kill-chucky",
+  "version": "0.0.0",
+  "description": "Quick and very dirty demo",
+  "main": "index.js",
+  "dependencies": {
+    "redis": "0.8.2",
+    "sockjs": "0.3.5",
+    "node-static": "latest"
+  },
+  "repository": "",
+  "author": "",
+  "license": "BSD"
+}

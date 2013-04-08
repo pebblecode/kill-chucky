@@ -1,0 +1,240 @@
+<!doctype html>
+<html><head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+  <script src="http://simplewebrtc.com/latest.js"></script> 
+  <script src="http://www.gieson.com/Library/projects/utilities/countdown/countdown.js"></script>
+  <script src="https://jqueryrotate.googlecode.com/files/jQueryRotate.2.2.js"></script>
+<style>
+#jgoopObject0{
+  margin-left: 20px;
+}
+body {
+  background-image:url('/images/bg.png');
+}
+
+h1 {
+  padding: 10px;
+  background: red;
+  color: white;
+}
+.box div {
+  background: white;
+}
+#wrapper {
+  width: 100%;
+}
+video {
+  width: 200px;
+  border: 10px solid white;
+  border-radius: 15px;
+}
+#left {
+  float: left;
+  width: 45%;
+}
+#right {
+  float: right;
+  width: 45%;
+}
+.box {
+  width: 300px;
+  float: left;
+  margin: 0 20px 0 20px;
+}
+.box div, .box input {
+  border: 1px solid;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  width: 100%;
+  padding: 0px;
+  margin: 5px;
+}
+.box div {
+  border-color: grey;
+  height: 300px;
+  overflow: auto;
+}
+.box input {
+  height: 30px;
+}
+h1 {
+  margin-left: 30px;
+}
+body {
+  background-color: #F0F0F0;
+  font-family: "Arial";
+}
+ul.graph {
+  width: 100%;
+  color: white;
+
+}
+ul.graph li {
+  width: 0%;
+  display: block;
+  height: 40px;
+  background: black;
+}
+ul#buttons {
+  list-style: none;
+}
+
+ul#buttons li {
+  display: inline;
+}
+button#yes {
+  padding: 30px;
+  border-radius: 30px;
+  background: red;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+}
+button#no {
+  padding: 30px;
+  border-radius: 30px;
+  background: red;
+  color: black;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: inset 0px -3px 1px rgba(0, 0, 0, 0.45), 0px 2px 2px rgba(0, 0, 0, 0.25);
+}
+li#yes-votes{
+  width: 100%;
+  background: green;
+  color: white;
+  font-weight: bold;
+}
+li#no-votes{
+  width: 10%;
+  background: red;
+  color: white;
+  font-weight: bold;
+}
+#chucky {
+  width: 40px;
+  color: white;
+  margin-left: 40px;
+  border-bottom: 2px dotted #ccc;
+}
+</style>
+</head><body lang="en">
+<h1>If working hours were not rigid would we be more productive?</h1>
+<div id="wrapper">
+  <div id="left">
+  <script>
+  var myCountdown1 = new Countdown({time: 60, width:200, height:80, rangeHi:"minute"});
+  </script>
+  <ul id="buttons">
+    <li><button id="yes">YES</button></li>
+    <li><button id="no">NO</button></li>
+  </ul>
+  <ul class="graph">
+    <li id='yes-votes'>YES:<span></span> </li>
+    <li id='no-votes'>NO:<span></span> </li>
+    </ul>
+    <div id="chucky">
+      <h3>Save Chucky?</h3>
+      <img id="chuck" src="/images/chucky.png" />
+    </div>
+  </div>
+
+  <div id="right">
+  <div id="first" class="box">
+    <div></div>
+    <form><input autocomplete="off" value="Chat..."></input></form>
+  </div>
+    <div id="videos">
+      <div id="localVideo"></div>
+      <div id="remotesVideos"></div>
+    <div>
+  </div>
+</div>
+
+
+
+
+<script>
+var yesVotes = $('li#yes-votes');
+var noVotes = $('li#no-votes');
+var sockjs_url = '/broadcast';
+var sockjs = new SockJS(sockjs_url);
+$('#first input').focus();
+
+var div  = $('#first div');
+var inp  = $('#first input');
+var form = $('#first form');
+
+var print = function(m, p) {
+  p = (p === undefined) ? '' : JSON.stringify(p);
+  div.append($("<code>").text(m + ' ' + p));
+  div.append($("<br>"));
+  div.scrollTop(div.scrollTop()+10000);
+};
+ 
+var votes;
+
+loveCounterPercentage = $('li.yes-votes'),
+hateCounterPercentage = $('li.hate'),
+loversList = $('#lovers ul'),
+haterslist = $('#haters ul');
+chuck = $('#chuck');
+
+//sockjs.onopen    = function()  {print('[*] open', sockjs.protocol);};
+sockjs.onmessage = function(e) {
+  e = JSON.parse(e.data);
+  console.log(e);
+  if (e.event === "chat") {
+    print(e.data);
+  }
+  if (e.event === "yes count") {
+    yesVotes
+      .text(e.data)
+      .css("width", e.data + '%');
+  }
+  if (e.event === "no count") {
+    noVotes
+      .text(e.data)
+      .css("width", e.data + '%');
+    chuck
+      .css("margin-left", e.data + 'px');
+      
+    if (e.data == 20) {
+      chuck.rotate(90);
+    }
+
+
+  }
+};
+//sockjs.onclose   = function()  {print('[*] close');};
+
+form.submit(function() {
+  var json = JSON.stringify({event: 'chat', data: inp.val() });
+  sockjs.send(json);
+  inp.val('');
+  return false;
+});
+$('button#yes').click(function() {
+  var json = JSON.stringify({event: 'vote', data: "yes"});
+  sockjs.send(json);
+});
+$('button#no').click(function() {
+  var json = JSON.stringify({event: 'vote', data: "no"});
+  sockjs.send(json);
+});
+var webrtc = new WebRTC({
+  // the id/element dom element that will hold "our" video
+  localVideoEl: 'localVideo',
+  // the id/element dom element that will hold remote videos
+  remoteVideosEl: 'remotesVideos',
+  // immediately ask for camera access
+  autoRequestMedia: true
+});
+webrtc.on('readyToCall', function () {
+  // you can name it anything
+  webrtc.joinRoom('votr');
+});
+
+</script>
+</body></html>
